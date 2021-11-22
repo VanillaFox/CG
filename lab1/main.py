@@ -21,7 +21,7 @@ def drawfunc():
        count += 25
  
    count = 25
-   for i in np.arange(h//2, h, 25 * zoom):
+   for i in np.arange(h//2 + 25 * zoom, h, 25 * zoom):
        conva.create_line((w//2)-3, i, (w//2)+3, i, width=2)
        conva.create_line((w//2)-3, h-i, (w//2)+3, h-i, width=2)
        if count%10==0:
