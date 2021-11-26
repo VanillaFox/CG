@@ -61,9 +61,9 @@ if __name__=="__main__":
    window.geometry("+550+150")
    window.title("p=a*cos(7phi)")
    window.columnconfigure(0, weight=2, minsize=10)
-   window.columnconfigure(1, weight=2, minsize=350)
+   window.columnconfigure(1, weight=1, minsize=350)
  
-   window.rowconfigure(0, weight=1, minsize=550)
+   window.rowconfigure(0, weight=2, minsize=550)
    window.rowconfigure([1, 2, 3], weight=1, minsize=10)
  
    conva = tk.Canvas(window, bg="pink")
