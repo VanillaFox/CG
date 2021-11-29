@@ -1,91 +1,105 @@
 import tkinter as tk
 import math
 import numpy as np
-import matrix as mtrx
-import camera as cmr
-startVertex = []
-polygon = []
-rotX = 0
-rotY = 0
-rotZ = 0
-camera = cmr.Camera()
-# def RobertsAlgo():
-#     for 
+import matrix as mtx
+import camera as cm
+import roberts as rb
+from functools import partial
 
-def readModel():
-    global startVertex, polygon
-    file = open('cube.txt')
-    for line in file:
-        lineSplit = line.split()
-        if lineSplit[0]=='v':
-            startVertex.append([int(lineSplit[1]), int(lineSplit[2]), int(lineSplit[3]), 1])
-        else:
-            polygon.append([int(lineSplit[1]), int(lineSplit[2]), int(lineSplit[3]), int(lineSplit[4])])
+class Object:
+    def __init__(self):
+        self.rotX = 0
+        self.rotY = 0
+        self.rotZ = 0
+        self.dx = 0
+        self.dy = 0
+        self.dz = 0
+        self.scale = 30
+        self.points = []
+        self.polygon = []
+        self.readModel()
+
+    def readModel(self):
+        with open('trapeze.txt') as file:
+            for line in file:
+                label, *lineSplit = line.split()
+                if label=='v':
+                    self.points.append(np.array(list(map(float, lineSplit))+[1]))
+                else:
+                    self.polygon.append(list(map(int, lineSplit)))
 
 
-def redraw(event):
-    print("HERE")
-    print(camera.height, camera.width)
-    drawModel()
+def MVPMatrix(object):
+    return mtx.ModelMatrix(object) @ camera.ViewMatrix() @ camera.projectionMatrix()
 
-def keyMove(event):
-    global rotX, rotY, rotZ
+
+def OMVPMatrix(object):
+    return mtx.ModelMatrix(object) @ camera.ViewMatrix() @ camera.orthogonalMatrix()
+
+
+def redraw(event, object):
+    camera.height = window.winfo_height()
+    camera.width = window.winfo_width()
+    camera.v_fov = camera.h_fov * (camera.height/camera.width)
+    drawOrthogonalProjection(object)
+
+
+def keyMove(event, object):
     if event.keycode==25:
-        rotX += 5
-    elif event.keycode==39:
-        rotX -= 5
+        object.rotX -= 3
     elif event.keycode==38:
-        rotY -= 5
+        object.rotY += 3
+    elif event.keycode==39:
+        object.rotX += 3
     elif event.keycode==40:
-        rotY += 5
+        object.rotY -= 3
     else:
         print(event.keycode)
         return
-    drawModel()
+    drawOrthogonalProjection(object)
 
-def drawModel():
-    global startVertex, polygon
-    global rotX, rotY, camera
+
+def drawLine(a, b):
+    canvas.create_line(a[0], a[1], b[0], b[1], width=2)
+
+
+def drawOrthogonalProjection(object):
     canvas.delete("all")
-    # Model = Rotate * Scale * Translate
-    # finalModel =  modelMatrix * vertex
-    matrix = np.eye(4, dtype=float)
+    robAlgo = rb.RobertsAlgo(object.points @ mtx.ModelMatrix(object), object.polygon, camera.ViewMatrix(), camera.position)
+    vertex = object.points @ OMVPMatrix(object)
+    for i in range(len(object.polygon)):
+        if robAlgo[i] < 0:
+            continue
+        for j in range(len(object.polygon[i])):
+            drawLine(vertex[object.polygon[i][j]], vertex[object.polygon[i][(j+1)%len(object.polygon[i])]])
 
-    if rotX!=0:
-        matrix = matrix@mtrx.rotXMatrix(rotX)
-    if rotY!=0:
-        matrix = matrix@mtrx.rotYMatrix(rotY)
-    matrix = matrix
-    matrix =  matrix @ camera.viewMatrix() @camera.projectionMatrix()
-    vertexes = startVertex @ matrix
-    vertexes /= vertexes[:, -1].reshape(-1, 1)
-    vertices_indices = np.all(~((vertexes > 1) | (vertexes < -1)), axis=-1)
-    vertexes = vertexes @ camera.toScreenMatrix()
-    vertexes = vertexes[:, :2]
+
+def drawPerspectiveProjection(object):
+    vertex = object.points @ MVPMatrix()
+    vertex /= vertex[:, -1].reshape(-1, 1)
+    vertices_indices = np.all(~((vertex > 1) | (vertex < -1)), axis=-1)
+    vertex = vertex @ camera.toScreenMatrix()
+
     for i in range(len(polygon)):
         for j in range(len(polygon[i])):
-            if not(vertices_indices[polygon[i][j]] and vertices_indices[polygon[i][(j+1)%4]]):
-                continue 
-            vert1 = vertexes[polygon[i][j]]
-            vert2 = vertexes[polygon[i][(j+1)%4]]
-            canvas.create_line(vert1[0], vert1[1], vert2[0], vert2[1], width=2)
- 
+            a = vertex[object.polygon[i][j]]
+            b = vertex[object.polygon[i][(j+1)%len(object.polygon[i])]]
+            if not(a and b):
+                continue
+            drawLine(a, b)
+
+
 if __name__=="__main__":
-    rotX = 0
-    rotY = 0
-    rotZ = 0
-    camera = cmr.Camera()
     window = tk.Tk()
-    window.geometry("700x700+550+150")
+    canvas = tk.Canvas(window, bg = "pink")
     window.columnconfigure(0, weight=2, minsize=550)
     window.rowconfigure(0, weight=2, minsize=550)
-    readModel()
-    canvas = tk.Canvas(window, bg="pink")
     canvas.grid(row=0, column=0, sticky="nsew")
-    window.update()
-    canvas.update()
-    drawModel()
+    trapeze = Object()
+    camera = cm.Camera()
+    window.geometry("700x700+550+150")
     window.minsize(window.winfo_width(), window.winfo_height())
-    window.bind("<Configure>", redraw)
-    window.bind("<Key>", keyMove)
+    drawOrthogonalProjection(trapeze)
+    window.bind("<Key>", partial(keyMove, object=trapeze))
+    window.bind("<Configure>", partial(redraw, object=trapeze))
     window.mainloop()

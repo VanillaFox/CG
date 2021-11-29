@@ -1,6 +1,7 @@
 import numpy as np
 import math
-
+# TVector =  vector * ScaleMatrix * RotMatrix * TranslMatrix
+# model * view * projection
 def rotXMatrix(a):
     rads = math.pi/180 * a
     matrix = np.eye(4, dtype=float)
@@ -39,5 +40,19 @@ def transferMatrix(dx, dy, dz):
     matrix = np.eye(4, dtype=float)
     matrix[3, 0] = dx
     matrix[3, 1] = dy
-    matrix[3, 2] = dz
+    matrix[3, 2 ] = dz
     return matrix
+
+def ModelMatrix(object):
+    modelMatrix = np.eye(4, dtype=float)
+    if object.rotX!=0:
+        modelMatrix = modelMatrix @ rotXMatrix(object.rotX)
+    if object.rotY!=0:
+        modelMatrix = modelMatrix @ rotYMatrix(object.rotY)
+    if object.rotZ!=0:
+        modelMatrix = modelMatrix @ rotZMatrix(object.rotZ)
+    if object.scale!=0:
+        modelMatrix = modelMatrix @ stretchingMatrix(object.scale, object.scale, object.scale)
+    if object.dx!=0 or object.dy!=0 or object.dz!=0:
+        modelMatrix = modelMatrix @ transferMatrix(object.dx, object.dy, object.dz)
+    return modelMatrix
