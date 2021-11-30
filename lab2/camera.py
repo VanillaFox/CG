@@ -2,14 +2,14 @@ import math
 import numpy as np
 
 class Camera:
-    def __init__(self):
+    def __init__(self, canvas):
         self.position = [0, 0, 10, 0]
         self.right = [1, 0, 0]
         self.up = [0, 1, 0]
         self.forward = [0, 0, 1]
         self.h_fov = math.pi/3
-        self.height = 700
-        self.width = 700
+        self.height = canvas.winfo_height()
+        self.width = canvas.winfo_width()
         self.v_fov = self.h_fov * (self.height/self.width)
         self.near_plane = 0.1
         self.far_plan = 100

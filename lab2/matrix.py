@@ -51,7 +51,7 @@ def ModelMatrix(object):
         modelMatrix = modelMatrix @ rotYMatrix(object.rotY)
     if object.rotZ!=0:
         modelMatrix = modelMatrix @ rotZMatrix(object.rotZ)
-    if object.scale!=0:
+    if object.scale>1:
         modelMatrix = modelMatrix @ stretchingMatrix(object.scale, object.scale, object.scale)
     if object.dx!=0 or object.dy!=0 or object.dz!=0:
         modelMatrix = modelMatrix @ transferMatrix(object.dx, object.dy, object.dz)
