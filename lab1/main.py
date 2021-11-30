@@ -75,7 +75,7 @@ if __name__=="__main__":
    scale.grid(row=1, column=1, sticky="ew")
    scale.set(100)
  
-   labelscale = tk.Label(master=frame, text="Parametr \’a\’")
+   labelscale = tk.Label(master=frame, text="Parametr ’a’")
    labelscale.grid(row=1, column=0, sticky="ew")
   
    labelEnt = tk.Label(master=frame, text="Zoom")
