@@ -82,7 +82,7 @@ def drawOrthogonalProjection(object):
     robAlgo = rb.RobertsAlgo(object.points @ mtx.ModelMatrix(object), object.polygon, camera.ViewMatrix(), camera.position)
     vertex = object.points @ OMVPMatrix(object)
     for i in range(len(object.polygon)):
-        if robAlgo[i] < 0:
+        if robAlgo[i] <= 0:
             continue
         for j in range(len(object.polygon[i])):
             drawLine(vertex[object.polygon[i][j]], vertex[object.polygon[i][(j+1)%len(object.polygon[i])]])
@@ -144,6 +144,7 @@ if __name__=="__main__":
     camera = cm.Camera(canvas)
     trapeze = Object(sx=scaleX.get(), sy=scaleY.get(), sz=scaleZ.get())
     drawOrthogonalProjection(trapeze)
+    # drawPerspectiveProjection(trapeze)
     
     scaleX.bind("<ButtonRelease-1>", partial(changeStartModel, object=trapeze))
     scaleY.bind("<ButtonRelease-1>", partial(changeStartModel, object=trapeze))

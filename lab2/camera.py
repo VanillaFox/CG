@@ -39,7 +39,7 @@ class Camera:
             [0, 0, c, 0]
         ]
         return matrix
-    
+        
     def orthogonalMatrix(self):
         matrix = np.eye(4, dtype=float)
         matrix[3, 0] = self.width//2
