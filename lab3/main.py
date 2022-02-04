@@ -36,14 +36,13 @@ class Object:
     def readModel(self):
         self.startPoints = []
         self.polygon = []
-        with open('horseshoe.txt') as file:
+        with open('figure/horseshoe.txt') as file:
             for line in file:
                 label, *lineSplit = line.split()
                 if label=='v':
                     self.startPoints.append(np.array(list(map(float, lineSplit))+[1]))
-                else:
-                    # self.polygon.append(list(map(lambda x: int(x)-1, lineSplit)))
-                    self.polygon.append(list(map(int, lineSplit)))
+                elif label=='f':
+                    self.polygon.append(list(map(lambda x: int(x)-1, lineSplit)))
 
     def scretchStartModel(self, sx, sy, sz):
         self.points = self.startPoints @ mtx.stretchingMatrix(sx, sy, sz)
@@ -92,18 +91,19 @@ def torgb(r,g,b):
 
 def drawOrthogonalProjection(object):
     canvas.delete("all")
+    #transformedVertices = modelVertices * model * view * projection
     vertex = object.points @ OMVPMatrix(object)
+    # sorting polygons on the z axis
     object.polygon = sorted(object.polygon, key=lambda x: vertex[x[2]][2])
-    # eqSurf = object.EqSurfaces()
     for i in range(len(object.polygon)):
         vec1 = np.array(vertex[object.polygon[i][0]]-vertex[object.polygon[i][1]])[:3]
         vec2 = np.array(vertex[object.polygon[i][2]]-vertex[object.polygon[i][1]])[:3]
-        res = np.cross(vec1, vec2)
-        # res = eqSurf[i].reshape(1, 3)[0]
-        res = res/math.sqrt(res @ res)
+        normal = np.cross(vec1, vec2)
+        normal = normal/math.sqrt(normal @ normal)
+        # view vector
         pos = camera.position
         pos = pos/math.sqrt(pos @ pos)
-        pos = pos @ res
+        pos = pos @ normal
         if pos > 0:      
             points = []
             for j in range(len(object.polygon[i])):
@@ -113,7 +113,7 @@ def drawOrthogonalProjection(object):
 
 if __name__=="__main__":
     window = tk.Tk()
-    window.title("Trapeze")
+    window.title("Software rendering")
     window.columnconfigure(0, weight=5, minsize=550)
     window.columnconfigure([1, 2], weight=1, minsize=10)
     window.rowconfigure([0, 1, 2, 3, 4, 5, 6, 7], weight=1, minsize=100)

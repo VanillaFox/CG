@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 def genModel(ringCount=15, ringsPoints=9, R=5, r=2):
-    with open('horseshoe.txt', 'w') as file:
+    with open('figure/horseshoe.txt', 'w') as file:
         stepI = 200/ringCount
         stepJ = 360/ringsPoints
         curcyrcle = []
@@ -22,13 +22,13 @@ def genModel(ringCount=15, ringsPoints=9, R=5, r=2):
             l = []
             for j in range(ringsPoints):
                 l.append('f ')
-                l.append(str(j + i*ringsPoints))
+                l.append(str(j+1 + i*ringsPoints))
                 l.append(' ')
-                l.append(str(j+(i+1)*ringsPoints))
+                l.append(str(j+1+(i+1)*ringsPoints))
                 l.append(' ')
-                l.append(str((j+1)%ringsPoints + (i+1)*ringsPoints))
+                l.append(str(1+(j+1)%ringsPoints + (i+1)*ringsPoints))
                 l.append(' ')
-                l.append(str((j+1)%ringsPoints + i*ringsPoints))
+                l.append(str(1+(j+1)%ringsPoints + i*ringsPoints))
                 l.append('\n')
                 file.writelines(l)
                 l.clear()
@@ -36,8 +36,8 @@ def genModel(ringCount=15, ringsPoints=9, R=5, r=2):
         l = ['f']
         for i in range(ringsPoints):
             l.append(' ')
-            l.append(str(i))
-            r.append(str(i + (ringCount-1)*ringsPoints))
+            l.append(str(i+1))
+            r.append(str(i+1 + (ringCount-1)*ringsPoints))
             r.append(' ')
         r.reverse()
         r.insert(0, 'f')
