@@ -27,13 +27,13 @@
 ./result gold figures/bunny.obj -scale 50
 ```
 
-![alt text](pictures/bunny.png)
+![alt text](pictures/bunny.gif)
 
 ```
 ./result copper -generate horseshoe -pcount 15 -wframe
 ```
 
-![alt text](pictures/horseshoe.png)
+![alt text](pictures/horseshoe.gif)
 
 ## Зависимости ##
 Перед запуском программы необходимо установить библиотеки ```glfw-x11``` и ```glew```:
