@@ -4,8 +4,8 @@ OUTPUT = result
 
 all: result
 
-result: main.o object.o matrix.o shaders.o
-	$(CC) main.o object.o matrix.o shaders.o -lGL -lGLEW -lglfw -o $(OUTPUT)
+result: main.o object.o matrix.o shaders.o generators.o
+	$(CC) main.o object.o matrix.o shaders.o generators.o -lGL -lGLEW -lglfw -Wall -Wextra -o $(OUTPUT)
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) main.cpp
@@ -18,6 +18,9 @@ matrix.o: matrix.cpp
 
 shaders.o: shaders.cpp
 	$(CC) $(CFLAGS) shaders.cpp
+
+generators.o: generators.cpp
+	$(CC) $(CFLAGS) generators.cpp
 
 clean:
 	rm -rf *.o $(OUTPUT)

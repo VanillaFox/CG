@@ -24,7 +24,7 @@ void Object::LoadModel(std::string filename){
                     verteces.push_back(std::stof(number));
                 }
             }
-            else{
+            else if(word=="f"){
                 Triangles(line);
             }
         }
@@ -37,12 +37,9 @@ void Object::Triangles(std::stringstream& str){
     str >> first;
     str >> second;
     while(str >> last){
-        faces.push_back(std::stoll(first));
-        faces.push_back(std::stoll(second));
-        faces.push_back(std::stoll(last));
-        // faces.push_back(std::stoll(last)-1);
-        // faces.push_back(std::stoll(second)-1);
-        // faces.push_back(std::stoll(first)-1);
+        faces.push_back(std::stoll(last)-1);
+        faces.push_back(std::stoll(second)-1);
+        faces.push_back(std::stoll(first)-1);
         second = last;
     }
 }

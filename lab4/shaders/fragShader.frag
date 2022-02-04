@@ -10,11 +10,11 @@ uniform float reflectionIntensity;
 
 void main(){
     vec3 lightVec = normalize(lightPos-pointPos);
-    float light = max(dot(Normals, lightVec), 0.0);
+    float difLight = max(dot(Normals, lightVec), 0.0);
     vec3 viewVec = normalize(viewPos-pointPos);
     vec3 reflectVec = reflect(-lightVec, Normals);
     float refl = pow(max(dot(viewVec, reflectVec), 0.0), 8);
     vec3 resRefl = reflectionIntensity * refl * lightColor;
-    vec3 res = (light*lightColor + resRefl)*ourColor;
+    vec3 res = (difLight*lightColor + resRefl)*ourColor;
     color = vec4(res, 1.0f);
 }

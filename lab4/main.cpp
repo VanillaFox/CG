@@ -1,121 +1,130 @@
 #include <iostream>
 #include <cmath>
 #include <map>
-#include <fstream>
+
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "../glm/glm/glm.hpp"
-#include "../glm/glm/gtc/matrix_transform.hpp"
-#include "../glm/glm/gtc/type_ptr.hpp"
+#include "glm/glm/glm.hpp"
+#include "glm/glm/gtc/matrix_transform.hpp"
+#include "glm/glm/gtc/type_ptr.hpp"
 
 #include "shaders.h"
 #include "object.h"
 #include "matrix.h"
+#include "generators.h"
 
-void GenHemisphere(float stepY = 0.05, int countPoints = 16, int r = 2){
-    std::ofstream file("tests/hemisphere.obj", std::ofstream::out | std::ofstream::trunc);
-    if(!file.is_open()){
-        std::cout << "Can't open file\n";
-    }
-    else{
-        float stepDgr = (float)360/countPoints;
-        float x, y, z;
-        int count = 0;
-        for(y = 0; y < 2; y=y+stepY){
-            count++;
-            float alpha = asin((double)y/r);
-            float firstx = r * cos(alpha);
-            for(float dgr = 0; dgr < 360; dgr=dgr+stepDgr){
-                x = firstx*cos(M_PI/180 * dgr);
-                z = firstx*sin(M_PI/180 * dgr);
-                file << "v " << x << " " << y << " " << z << "\n";
-            }
-        }
-        file << "v 0 2 0\n";
-        for(int i = 0; i < count-1; i++){
-            for(int j = 0; j < countPoints; j++){
-                file << "f " << j + i*countPoints << " " <<  j+(i+1)*countPoints << " " << (j+1)%countPoints + (i+1)*countPoints << " " << (j+1)%countPoints + i*countPoints << "\n";
-            }
-        }
-        file << "f";
-        for(int i = 0; i < countPoints; i++){
-            file << " " << i;
-        }
-        file << "\n";
-        for(int i = 0; i < countPoints; i++){
-            file << "f " << countPoints*(count-1) + i << " " <<  countPoints*count << " " << countPoints*(count-1) + (i+1)%countPoints << "\n";
-        }
-    }
-    file.close();
-}
+const std::string FRAME_FLAG = "-wframe";
+const std::string SCALE_FLAG = "-scale";
+const std::string YSTEP_FLAG = "-ystep";
+const std::string RCOUNT_FLAG = "-rcount";
+const std::string PCOUNT_FLAG = "-pcount";
+const std::string GENERATE_FLAG = "-generate";
 
-void GenHourseshoe(int ring=15, int points=9, int R=5, int r=2){
-    std::ofstream file("figures/horseshoe.obj", std::ofstream::out | std::ofstream::trunc);
-    if(!file.is_open()){
-        std::cout << "Can't open file\n";
-    }
-    else{
-        float stepI = (float)200/ring;
-        float stepJ = (float)360/points;
-        float x, y, z;
-        for(float i = 90, countR = 0; i < 290, countR < ring; i=i+stepI, countR++){
-            for(float j = 0, countP = 0; j < 360.0f, countP < points; j=j+stepJ, countP++){
-                x = (R+r*cos(M_PI/180 * j)) * sin(M_PI/180 * i);
-                y = (R+r*cos(M_PI/180 * j)) * cos(M_PI/180 * i);
-                z = r * sin(M_PI/180 * j);
-                file << "v " << x << " " << y << " " << z << "\n";
-            }
-        }
-        for(int i = 0; i < ring-1; i++){
-            for(int j = 0; j < points; j++){
-                file << "f " << j+i*points << " " << j+(i+1)*points<< " " << (j+1)%points + (i+1)*points<< " " << (j+1)%points + i*points << "\n";
-            }
-        }
-        file << "f";
-        for(int i = 0; i < points; i++){
-            file << " " << i;
-        }
-        file << "\nf";
-        for(int i = points-1; i >= 0; i--){
-            file << " " << i+(ring-1)*points;
-        }
-        file << "\n";
-    }
-    file.close();
-}
+const std::string HEMISPHERE = "hemisphere";
+const std::string HORSESHOE = "horseshoe";
+
 
 std::map<std::string, std::vector<float>> materials{
     {"plastic", {0.9, 0.5, 0.6, 0.3}},
-    {"gold", {1.0, 0.9, 0.2, 3.0}},
-    {"cooper", {0.8, 0.3, 0.2, 4.0}}
+    {"gold", {1.0, 0.9, 0.2, 2.0}},
+    {"copper", {0.8, 0.3, 0.2, 2.0}}
 };
 
 
+bool CheckFlags(std::string flag, bool& frameFlag, bool& genFlag,std::string& modelName, float& scale, float& ystep, int& ringCount, int& pointCount, std::string flagValue = "0"){
+    bool answer = false;
+    if(flag==SCALE_FLAG){
+        if(stof(flagValue)>0){
+            scale = stof(flagValue);
+            answer = true;
+        }
+    }
+    if(flag==YSTEP_FLAG){
+        if(stof(flagValue)>0){
+            ystep = stof(flagValue);
+            answer = true;
+        }
+    }
+    if(flag==RCOUNT_FLAG){
+        if(stoi(flagValue)>2){
+            ringCount = stoi(flagValue);
+            answer = true;
+        }
+    }
+    if(flag==PCOUNT_FLAG){
+        if(stoi(flagValue)>2){
+            pointCount = stoi(flagValue);
+            answer = true;
+        }
+    }
+    if(flag==GENERATE_FLAG){
+        if(flagValue==HEMISPHERE){
+            modelName = HEMISPHERE;
+        }
+        else if(flagValue==HORSESHOE){
+            modelName = HORSESHOE;
+        }
+        else{
+            return answer;
+        }
+        genFlag = true;
+        answer = true;
+    }
+    if(flag==FRAME_FLAG){
+        frameFlag = true;
+        answer = true;
+    }
+    return answer;
+}
+
 int main(int argc, char *argv[]){
-    if(argc < 2){
-        perror("Usage: ./main <material> <count of rings> <points in ring>");
-        //perror("Usage: ./main <material> <step of Y> <points in circle>");
+    if(argc < 3){
+        perror("Usage: ./result <material> <model name> <flags> ");
         exit(-1);
     }
     std::string materialName = argv[1];
-    int ringCount = 15, pointsCount = 9; 
-    // float stepOfY = 0.1;
-    // int pointsCount = 16; 
-    if(argc > 3){
-        ringCount = atoi(argv[2]);
-        pointsCount = atoi(argv[3]);
-        // stepOfY = atof(argv[2]);
-        //pointsCount = atoi(argv[3]);
-    }
-    GenHourseshoe(ringCount, pointsCount);
-    // GenHemisphere(stepOfY, pointsCount);
-
     std::vector<float> data = materials[materialName];
     if(data.empty()){
-        std::cout << "There is no such material\n";
+        std::cout << "There is no such material";
         return 0;
     }
+    
+    std::string flag, flagValue, modelName = argv[2];
+    int flagIndx = 3;
+    if(modelName[0]=='-'){
+        flagIndx--;
+    }
+    bool frameFlag = false, genFlag = false;
+    float scale = 1.0, stepOfY = 0.1;
+    int ringCount = 15, pointsCount = 9;
+    for(int i = flagIndx; i < argc; i++){
+        flag = argv[i];
+        if(flag==FRAME_FLAG){
+            CheckFlags(flag, frameFlag, genFlag, modelName, scale, stepOfY, ringCount, pointsCount);
+        }
+        else{
+            if(argc==i+1){
+                perror("Enter a value for the flag");
+                exit(-1);
+            }
+            i++;
+            flagValue = argv[i];
+            if(!CheckFlags(flag, frameFlag, genFlag, modelName, scale, stepOfY, ringCount, pointsCount, flagValue)){
+                std::cout << "Incorrect use of flag: " + flag + "\n";
+                exit(-1);
+            }
+        }
+    }
+
+    if(genFlag){
+        if(modelName==HEMISPHERE)
+            GenHemisphere(stepOfY, pointsCount);
+        else
+            GenHourseshoe(ringCount, pointsCount);
+        modelName = "figures/" + modelName + ".obj";
+    }
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -135,8 +144,7 @@ int main(int argc, char *argv[]){
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);  
     glViewport(0, 0, width, height);
-    Object object("figures/horseshoe.obj");
-
+    Object object(modelName);
 	Shader shader;
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -152,7 +160,9 @@ int main(int argc, char *argv[]){
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    if(frameFlag){
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
     glEnable(GL_DEPTH_TEST);
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
@@ -161,13 +171,10 @@ int main(int argc, char *argv[]){
 		shader.Use();
 		GLfloat timeValue = glfwGetTime();
         object.SetrotX(timeValue*20);
-        // object.SetrotY(timeValue*15);
-        // object.SetscaleX(std::abs(cos(timeValue)));
-        // object.SetscaleX(15);
-        // object.SetscaleY(15);
-        // object.SetscaleZ(15);
-
-
+        object.SetrotY(timeValue*15);
+        object.SetscaleX(scale);
+        object.SetscaleY(scale);
+        object.SetscaleZ(scale);
         object.Setdz(-15);
 		glUniform3f(glGetUniformLocation(shader.shaderProgram, "ourColor"), data[0], data[1], data[2]);
 		glUniform3f(glGetUniformLocation(shader.shaderProgram, "lightPos"), 0.0f, 0.0f, 15.0f);
