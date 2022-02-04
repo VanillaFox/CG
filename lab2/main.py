@@ -1,5 +1,4 @@
 import tkinter as tk
-import math
 import numpy as np
 import matrix as mtx
 import camera as cm
@@ -22,7 +21,7 @@ class Object:
         self.scretchStartModel(sx, sy, sz)
 
     def readModel(self):
-        with open('trapeze.txt') as file:
+        with open('figure/trapeze.txt') as file:
             for line in file:
                 label, *lineSplit = line.split()
                 if label=='v':
@@ -91,7 +90,6 @@ def drawOrthogonalProjection(object):
 def drawPerspectiveProjection(object):
     vertex = object.points @ MVPMatrix()
     vertex /= vertex[:, -1].reshape(-1, 1)
-    vertices_indices = np.all(~((vertex > 1) | (vertex < -1)), axis=-1)
     vertex = vertex @ camera.toScreenMatrix()
 
     for i in range(len(polygon)):
@@ -138,13 +136,11 @@ if __name__=="__main__":
     scaleZ.set(10)
     
     window.geometry("+550+150")
-    window.update()
     window.minsize(window.winfo_width(), window.winfo_height())
 
     camera = cm.Camera(canvas)
     trapeze = Object(sx=scaleX.get(), sy=scaleY.get(), sz=scaleZ.get())
     drawOrthogonalProjection(trapeze)
-    # drawPerspectiveProjection(trapeze)
     
     scaleX.bind("<ButtonRelease-1>", partial(changeStartModel, object=trapeze))
     scaleY.bind("<ButtonRelease-1>", partial(changeStartModel, object=trapeze))
