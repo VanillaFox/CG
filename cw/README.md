@@ -6,7 +6,7 @@
 
 [Поверхность Безье](https://ru.wikipedia.org/wiki/%D0%9F%D0%BE%D0%B2%D0%B5%D1%80%D1%85%D0%BD%D0%BE%D1%81%D1%82%D1%8C_%D0%91%D0%B5%D0%B7%D1%8C%D0%B5) порядка <img src="https://render.githubusercontent.com/render/math?math=(n, m)"> задается <img src="https://render.githubusercontent.com/render/math?math=(n+1)\cdot(m+1)"> контрольными точками <img src="https://render.githubusercontent.com/render/math?math=P_{i,j}">.
 
-<img src="https://render.githubusercontent.com/render/math?math=p(u, v) = \sum_{i=0}^{n} \sum_{j=0}^{m} B^{n}_{i}(u) B^{m}_{j}(v)P_{i,j}">, где 
+<img src="https://render.githubusercontent.com/render/math?math=p(u, v) = \displaystyle\sum_{i=0}^{n} \displaystyle\sum_{j=0}^{m} B^{n}_{i}(u) B^{m}_{j}(v)P_{i,j}">, где 
 
 <img src="https://render.githubusercontent.com/render/math?math=u, v \in (0, 1)">, а <img src="https://render.githubusercontent.com/render/math?math=B"> - многочлен Бернштейна:
 
