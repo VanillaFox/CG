@@ -5,13 +5,18 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "../glm/glm/glm.hpp"
-#include "../glm/glm/gtc/matrix_transform.hpp"
-#include "../glm/glm/gtc/type_ptr.hpp"
+#include "glm/glm/glm.hpp"
+#include "glm/glm/gtc/matrix_transform.hpp"
+#include "glm/glm/gtc/type_ptr.hpp"
 
 #include "shaders.h"
 #include "object.h"
 #include "matrix.h"
+
+const std::string STEP_FLAG = "-step";
+const std::string WFRAME_FLAG = "-wframe";
+const std::string M_ORDER_FLAG = "-m";
+const std::string N_ORDER_FLAG = "-n";
 
 void GenBezier(std::vector<float>& x, std::vector<float>& y, std::vector<float>& z, float step=0.1, int n=3, int m=3){
     std::ofstream file("figures/bezier.obj", std::ofstream::out | std::ofstream::trunc);
@@ -51,7 +56,55 @@ void GenBezier(std::vector<float>& x, std::vector<float>& y, std::vector<float>&
     file.close();
 }
 
-int main(){
+bool ParsFlags(std::string flag, bool& wframeFlag, std::string flagValue, float& step, int& n, int& m){
+    bool ans = false;
+    if(flag==WFRAME_FLAG){
+        wframeFlag = true;
+        ans = true;
+    }
+    if(flag==STEP_FLAG){
+        step = stof(flagValue);
+        ans = true;
+    }
+    if(flag==M_ORDER_FLAG){
+        m = stoi(flagValue);
+        ans = true;
+    }
+    if(flag==N_ORDER_FLAG){
+        n = stoi(flagValue);
+        ans = true;
+    }
+    return ans;
+}
+
+int main(int argc, char *argv[]){
+    std::string flag, flagValue;
+    bool wframeFlag = false;
+    float step = 0.1;
+    int n=3, m=3;
+
+    if(argc > 1){
+        for(int i = 1; i < argc; i++){
+            flag = argv[i];
+            if(flag==STEP_FLAG){
+                i++;
+                if(i==argc){
+                    std::cout << "Incorrect use of the flag: " << flag << "\n";
+                    exit(-1);
+                }
+                else{
+                    flagValue = argv[i];
+                    ParsFlags(flag, wframeFlag, flagValue, step, n, m);
+                }
+            }
+            else{
+                if(!ParsFlags(flag, wframeFlag, flagValue, step, n, m)){
+                    std::cout << "Incorrect use of the flag: " << flag << "\n";
+                    exit(-1);
+                }
+            }
+        }
+    }
     std::ifstream file("figures/coords.txt");
     if(!file.is_open()){
         std::cout << "Can't open file\n";
@@ -59,15 +112,18 @@ int main(){
     }
     std::string xcoord, ycoord, zcoord;
     std::vector<float> x, y, z;
+    int count = 0;
     while(file >> xcoord >> ycoord >> zcoord){
         x.push_back(std::stof(xcoord));
         y.push_back(std::stof(ycoord));
         z.push_back(std::stof(zcoord));
+        count++;
     }
-    std::cout << "Enter distance between points (<0.5): ";
-    float step;
-    std::cin >> step;
-    GenBezier(x, y, z, step);
+    if(count < (n+1)*(m+1)){
+        std::cout << "Insufficient number of control points: " << (n+1)*(m+1)-count << "\n";
+        exit(-1);
+    }
+    GenBezier(x, y, z, step, n, m);
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -87,7 +143,7 @@ int main(){
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);  
     glViewport(0, 0, width, height);
-    Object object("tests/bezier.obj");
+    Object object("figures/bezier.obj");
 
 	Shader shader;
     GLuint VBO, VAO;
@@ -104,7 +160,8 @@ int main(){
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    if(wframeFlag)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_DEPTH_TEST);
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
